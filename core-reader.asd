@@ -10,6 +10,6 @@
   ("type-ext" "bsearch")
   :components
   ((:file "core-reader")))
-;; Perform method below is added by JINGOH.GENERATOR.
-(defmethod perform ((o test-op) (c (eql (find-system "core-reader"))))
-  (test-system :core-reader.test))
+
+(defmethod component-depends-on ((o test-op) (c (eql (find-system "core-reader"))))
+  (append (call-next-method)'((test-op "core-reader.test"))))
