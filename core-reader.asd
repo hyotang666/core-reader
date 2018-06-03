@@ -7,7 +7,10 @@
                                                     "README.md"))
   :license "MIT"
   :depends-on
-  ("type-ext" "bsearch")
+  (
+   "type-ext" ; type extension.
+   "bsearch" ; bynary search.
+   )
   :components
   ((:file "core-reader")))
 
