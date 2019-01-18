@@ -214,6 +214,7 @@
 ; check := boolean which specify return function should test argument is character or not.
 ; The default is NIL.
 #?(funcall (char-pred #\a) :not-character) :signals type-error
+,:lazy t
 #?(funcall (char-pred #\a T) :not-character) => NIL
 
 ; result := function as (function(character)boolean)
