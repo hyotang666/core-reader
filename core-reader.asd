@@ -9,7 +9,7 @@
   :depends-on
   (
    "type-ext" ; type extension.
-   "bsearch" ; bynary search.
+   "bsearch" ; binary search.
    )
   :components
   ((:file "core-reader")))
