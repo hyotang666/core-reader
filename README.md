@@ -18,6 +18,6 @@ MIT
 ### Developed with
 SBCL/1.4.15
 ### Tested with
-ECL/16.1.3 CCL/1.11
+CCL/1.11.5
 ## Installation
 
