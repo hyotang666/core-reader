@@ -13,11 +13,8 @@
   '(or function
        (and symbol (not (or boolean keyword)))))
 
-(deftype input-stream()
-  '(and stream (satisfies input-stream-p)))
-
 (Prototype read-string-till(function-designator
-			    &optional input-stream boolean T boolean boolean)
+			    &optional stream boolean T boolean boolean)
 	   (values (or string t) boolean))
 (defun read-string-till (pred &optional
 			      (*standard-input* *standard-input*)
@@ -57,7 +54,7 @@
     (lambda(char)
       (gethash char ht))))
 
-(Prototype read-delimited-string(character &optional input-stream)
+(Prototype read-delimited-string(character &optional stream)
 	   string)
 (defun read-delimited-string(end-char &optional (*standard-input* *standard-input*))
   (loop :for c = (read-char)
