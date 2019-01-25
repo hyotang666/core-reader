@@ -99,17 +99,12 @@
 
 ;;;; Arguments and Values:
 
-; delimiters := vector, which includes character and must sorted.
-; when not vector, signals an error when called.
-#?(delimiter '(#\a #\b #\c #\d)) => unspecified
-#?(funcall(delimiter '(#\a #\b #\c #\d))#\a) :signals type-error
-,:ignore-signals warning
-; when element is not character, signals an error when called.
-#?(delimiter #(not character elt)) => unspecified
-#?(funcall (delimiter #(not character elt)) #\a) :signals type-error
-; when vector is not sorted, unspecified.
-#?(delimiter "asdf") :be-the function
-#?(funcall (delimiter "asdf") #\a) => unspecified
+; delimiters := sequence, which includes character.
+; when not sequence, signals an error.
+#?(delimiter :not-sequence) :signals type-error
+,:lazy t
+; when element is not character, signals an type-error.
+#?(delimiter #(not character elt)) :signals type-error
 
 ; result := function as (function(T)boolean)
 

@@ -1,5 +1,4 @@
 (defpackage #:core-reader
-  (:use #:common-lisp #:bsearch)
   (:import-from :type-ext #:prototype)
   (:export
     #:read-string-till
@@ -45,10 +44,18 @@
 			  (progn(unread-char c)
 			    (coerce result 'string))))))
 
-(Prototype delimiter(vector)function)
+(Prototype delimiter(sequence)function)
 (defun delimiter(delimiters)
-  (lambda(c)
-    (Bsearch c delimiters :compare #'char< :test #'char=)))
+  (let((ht(make-hash-table)))
+    (map nil (if(stringp delimiters)
+	       (lambda(char)
+		 (setf(gethash char ht)char))
+	       (lambda (char)
+		 (check-type char character)
+		 (setf (gethash char ht)char)))
+	 delimiters)
+    (lambda(char)
+      (gethash char ht))))
 
 (Prototype read-delimited-string(character &optional input-stream)
 	   string)
