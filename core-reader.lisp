@@ -97,6 +97,7 @@
 	   string)
 (defun read-delimited-string(end-char &optional (*standard-input* *standard-input*))
   (declare(type character end-char))
+  #+ccl(check-type end-char character)
   (loop :for c :of-type character = (read-char)
 	:collect c :into result
 	:if (char= #\\ c) :collect (read-char) :into result
