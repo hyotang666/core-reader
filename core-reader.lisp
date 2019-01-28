@@ -94,7 +94,8 @@
 (Prototype read-delimited-string(character &optional stream)
 	   string)
 (defun read-delimited-string(end-char &optional (*standard-input* *standard-input*))
-  (loop :for c = (read-char)
+  (declare(type character end-char))
+  (loop :for c :of-type character = (read-char)
 	:collect c :into result
 	:if (char= #\\ c) :collect (read-char) :into result
 	:else :if (char= end-char c)
