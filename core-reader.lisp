@@ -40,6 +40,8 @@
 			  `#',(cadr function))
 			 ((cons (eql function) t)
 			  function)
+			 ((cons (eql the)(cons function t))
+			  function)
 			 (t `(coerce ,function 'function)))
 		      ,(or stream '*standard-input*)
 		      ,eof-error-p
