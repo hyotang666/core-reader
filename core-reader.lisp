@@ -16,30 +16,67 @@
 (Prototype read-string-till(function-designator
 			    &optional stream boolean T boolean boolean)
 	   (values (or string t) boolean))
-(defun read-string-till (pred &optional
-			      (*standard-input* *standard-input*)
-			      (eof-error-p t)
-			      (eof-value nil)
-			      (consume nil)
-			      (include nil))
-  (loop :for (c condition) = (multiple-value-list(ignore-errors(read-char)))
-	;; C is character or nil.
-	:while(or (and c (null(funcall pred c)))
-		  (and (null c) ; reach end of file.
-		       (if result
-			 (return(coerce result 'string))
-			 (if eof-error-p
-			   (error condition)
-			   (return eof-value)))))
-	:collect c :into result ; always consume one char.
-	:when(char= c #\\) ; escape char-p
-	:collect (read-char) :into result ; consume one more char.
-	:finally(return (if consume
-			  (if include
-			    (concatenate 'string result (string c))
-			    (coerce result 'string))
-			  (progn(unread-char c)
-			    (coerce result 'string))))))
+(defun read-string-till(pred &optional
+			     (*standard-input* *standard-input*)
+			     (eof-error-p t)
+			     (eof-value nil)
+			     (consume nil)
+			     (include nil))
+  (%read-string-till (coerce pred 'function)
+		     *standard-input*
+		     eof-error-p
+		     eof-value
+		     consume
+		     include))
+
+(define-compiler-macro read-string-till(function &optional
+						 stream
+						 (eof-error-p t)
+						 eof-value
+						 consume
+						 include)
+  `(%read-string-till ,(typecase function
+			 ((cons (eql quote)(cons symbol null))
+			  `#',(cadr function))
+			 ((cons (eql function) t)
+			  function)
+			 (t `(coerce ,function 'function)))
+		      ,(or stream '*standard-input*)
+		      ,eof-error-p
+		      ,eof-value
+		      ,consume
+		      ,include))
+
+(declaim(inline %read-string-till))
+(defun %read-string-till (pred *standard-input*
+			       eof-error-p
+			       eof-value
+			       consume
+			       include)
+  (declare (optimize speed)
+	   (type function pred))
+  (prog(result)
+    (declare(type list result))
+    (handler-bind((end-of-file (lambda(c)
+				 (declare(ignore c))
+				 (if result
+				   (go :return)
+				   (unless eof-error-p
+				     (return eof-value))))))
+      (tagbody
+	:TOP
+	(push (read-char) result)
+	(when(char= #\\ (car result))
+	  (push (read-char)result)
+	  (go :top))
+	(unless(funcall pred (car result))
+	  (go :top))
+	(if consume
+	  (unless include
+	    (pop result))
+	  (unread-char (pop result)))))
+    :return
+    (return(coerce (nreverse result)'string))))
 
 (Prototype delimiter(sequence)function)
 (defun delimiter(delimiters)
