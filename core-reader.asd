@@ -2,7 +2,7 @@
 (in-package :asdf)
 (defsystem "core-reader"
   :author "Shinichi Sato"
-  :description "Core helpers for writing reader."
+  :description "Utilities for stream oriented reader."
   :long-description #.(read-file-string(subpathname *load-pathname*
                                                     "README.md"))
   :license "MIT"
