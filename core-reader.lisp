@@ -103,21 +103,22 @@
 
 (Prototype string-concat(list)string)
 (defun string-concat(list)
+  (declare(optimize(speed 3)))
   (let*((size(let((size 0))
-	       (declare(type fixnum size))
+	       (declare(type (mod #.most-positive-fixnum) size))
 	       (dolist(elt list size)
-		 (if(characterp elt)
-		   (incf size)
-		   (incf size (length elt))))))
-	(string(make-array size :element-type 'character)))
-    (loop :for elt :in list
-	  :with index = 0
-	  :when (characterp elt)
-	  :do (setf(schar string index)elt)
-	  (incf index)
-	  :else :do (replace string elt :start1 index)
-	  (incf index (length elt)))
-    string))
+		 (etypecase elt
+		   (character(incf size))
+		   (string(incf size (length elt)))))))
+	(string(make-array size :element-type 'character))
+	(index 0))
+    (declare(type (mod #.most-positive-fixnum) size index))
+    (dolist(elt list string)
+      (etypecase elt
+	(character(setf(char string index)elt)
+	  (incf index))
+	(string(replace string elt :start1 index)
+	  (incf index (length elt)))))))
 
 (Prototype char-pred(character &optional boolean)function)
 (defun char-pred(char &optional check)
