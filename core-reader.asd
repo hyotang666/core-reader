@@ -8,7 +8,6 @@
   :license "MIT"
   :depends-on
   (
-   "type-ext" ; type extension.
    )
   :components
   ((:file "core-reader")))

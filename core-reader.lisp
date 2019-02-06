@@ -1,5 +1,5 @@
 (defpackage #:core-reader
-  (:import-from :type-ext #:prototype)
+  (:use :cl)
   (:export
     #:read-string-till
     #:delimiter
@@ -13,9 +13,11 @@
   '(or function
        (and symbol (not (or boolean keyword)))))
 
-(Prototype read-string-till(function-designator
+(declaim (ftype (function (function-designator
 			    &optional stream boolean T boolean boolean)
-	   (values (or string t) boolean))
+			  (values (or string t) boolean))
+		read-string-till))
+
 (defun read-string-till(pred &optional
 			     (*standard-input* *standard-input*)
 			     (eof-error-p t)
@@ -80,7 +82,8 @@
     :return
     (return(coerce (nreverse result)'string))))
 
-(Prototype delimiter(sequence)function)
+(declaim (ftype (function (sequence)function)delimiter))
+
 (defun delimiter(delimiters)
   (let((ht(make-hash-table)))
     (map nil (if(stringp delimiters)
@@ -93,8 +96,9 @@
     (lambda(char)
       (gethash char ht))))
 
-(Prototype read-delimited-string(character &optional stream)
-	   string)
+(declaim (ftype (function (character &optional stream) string)
+		read-delimited-string))
+
 (defun read-delimited-string(end-char &optional (*standard-input* *standard-input*))
   (declare(type character end-char))
   #+ccl(check-type end-char character)
@@ -104,7 +108,8 @@
 	:else :if (char= end-char c)
 	:return (concatenate 'string(string c) result)))
 
-(Prototype string-concat(list)string)
+(declaim (ftype (function (list) string) string-concat))
+
 (defun string-concat(list)
   (declare(optimize(speed 3)))
   (let*((size(let((size 0))
@@ -123,7 +128,8 @@
 	(string(replace string elt :start1 index)
 	  (incf index (length elt)))))))
 
-(Prototype char-pred(character &optional boolean)function)
+(declaim (ftype (function (character &optional boolean)function)char-pred))
+
 (defun char-pred(char &optional check)
   (assert(typep char 'character))
   (if check
