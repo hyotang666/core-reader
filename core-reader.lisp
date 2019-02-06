@@ -18,6 +18,37 @@
 			  (values (or string t) boolean))
 		read-string-till))
 
+(declaim(inline %read-string-till))
+(defun %read-string-till (pred *standard-input*
+			       eof-error-p
+			       eof-value
+			       consume
+			       include)
+  (declare (optimize speed)
+	   (type function pred))
+  (prog(result)
+    (declare(type list result))
+    (handler-bind((end-of-file (lambda(c)
+				 (declare(ignore c))
+				 (if result
+				   (go :return)
+				   (unless eof-error-p
+				     (return eof-value))))))
+      (tagbody
+	:TOP
+	(push (read-char) result)
+	(when(char= #\\ (car result))
+	  (push (read-char)result)
+	  (go :top))
+	(unless(funcall pred (car result))
+	  (go :top))
+	(if consume
+	  (unless include
+	    (pop result))
+	  (unread-char (pop result)))))
+    :return
+    (return(coerce (nreverse result)'string))))
+
 (defun read-string-till(pred &optional
 			     (*standard-input* *standard-input*)
 			     (eof-error-p t)
@@ -50,37 +81,6 @@
 		      ,eof-value
 		      ,consume
 		      ,include))
-
-(declaim(inline %read-string-till))
-(defun %read-string-till (pred *standard-input*
-			       eof-error-p
-			       eof-value
-			       consume
-			       include)
-  (declare (optimize speed)
-	   (type function pred))
-  (prog(result)
-    (declare(type list result))
-    (handler-bind((end-of-file (lambda(c)
-				 (declare(ignore c))
-				 (if result
-				   (go :return)
-				   (unless eof-error-p
-				     (return eof-value))))))
-      (tagbody
-	:TOP
-	(push (read-char) result)
-	(when(char= #\\ (car result))
-	  (push (read-char)result)
-	  (go :top))
-	(unless(funcall pred (car result))
-	  (go :top))
-	(if consume
-	  (unless include
-	    (pop result))
-	  (unread-char (pop result)))))
-    :return
-    (return(coerce (nreverse result)'string))))
 
 (declaim (ftype (function (sequence)function)delimiter))
 
