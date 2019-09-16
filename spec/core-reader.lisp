@@ -203,7 +203,9 @@
 
 ; char := character which means target.
 ; if not character, signals an error.
-#?(char-pred "a") :signals type-error
+#?(char-pred "a") :signals (or type-error
+			       error ; for clisp.
+			       )
 ,:ignore-signals warning
 
 ; check := boolean which specify return function should test argument is character or not.
