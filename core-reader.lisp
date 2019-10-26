@@ -95,7 +95,7 @@
 		 (setf (gethash char ht)char)))
 	 delimiters)
     (lambda(char)
-      (gethash char ht))))
+      (values (gethash char ht)))))
 
 (declaim (ftype (function (character &optional stream)
 			  (values string &optional))
