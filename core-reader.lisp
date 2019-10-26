@@ -82,8 +82,9 @@
 		      ,consume
 		      ,include))
 
-(declaim (ftype (function (sequence)function)delimiter))
-
+(declaim (ftype (function (sequence)
+			  (values function &optional))
+		delimiter))
 (defun delimiter(delimiters)
   (let((ht(make-hash-table)))
     (map nil (if(stringp delimiters)
@@ -96,9 +97,9 @@
     (lambda(char)
       (gethash char ht))))
 
-(declaim (ftype (function (character &optional stream) string)
+(declaim (ftype (function (character &optional stream)
+			  (values string &optional))
 		read-delimited-string))
-
 (defun read-delimited-string(end-char &optional (*standard-input* *standard-input*))
   (declare(type character end-char))
   #+ccl(check-type end-char character)
@@ -108,8 +109,9 @@
 	:else :if (char= end-char c)
 	:return (concatenate 'string(string c) result)))
 
-(declaim (ftype (function (list) string) string-concat))
-
+(declaim (ftype (function (list)
+			  (values string &optional))
+		string-concat))
 (defun string-concat(list)
   (declare(optimize(speed 3)))
   (let*((size(let((size 0))
@@ -128,8 +130,9 @@
 	(string(replace string elt :start1 index)
 	  (incf index (length elt)))))))
 
-(declaim (ftype (function (character &optional boolean)function)char-pred))
-
+(declaim (ftype (function (character &optional boolean)
+			  (values function &optional))
+		char-pred))
 (defun char-pred(char &optional check)
   (assert(typep char 'character))
   (if check
