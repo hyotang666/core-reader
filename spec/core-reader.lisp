@@ -126,7 +126,8 @@
 ; Read delimited strimg.
 
 #+syntax
-(READ-DELIMITED-STRING end-char &optional (*standard-input* *standard-input*)) ; => result
+(READ-DELIMITED-STRING end-char &optional (*standard-input* *standard-input*)
+		       start-char) ; => result
 
 #?(read-delimited-string #\space) => " foo] "
 
@@ -138,6 +139,14 @@
 
 ; *standard-input* := input stream, otherwise error
 #?(read-delimited-string #\space *standard-output*) :signals error
+
+; start-char := character which is open delimiter, otherwise error.
+#?(read-delimited-string #\( *standard-input* :not-character) :signals condition
+; If specified, such char use as open delimiter.
+#?(read-delimited-string #\]) ; <--- without specify.
+=> "]foo]"
+#?(read-delimited-string #\] *standard-input* #\[)
+=> "[foo]"
 
 ; result := string
 
