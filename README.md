@@ -16,9 +16,10 @@ See spec file.
 ### License
 MIT
 ### Tested with
-* SBCL/1.5.7
+* SBCL/1.5.8
 * CCL/1.11.5
 * ECL/16.1.3
+* CLISP/2.49
 
 ## Installation
 
