@@ -37,9 +37,6 @@
       (tagbody
 	:TOP
 	(push (read-char) result)
-	(when(char= #\\ (car result))
-	  (push (read-char)result)
-	  (go :top))
 	(unless(funcall pred (car result))
 	  (go :top))
 	(if consume
