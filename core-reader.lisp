@@ -94,17 +94,21 @@
     (lambda(char)
       (values (gethash char ht)))))
 
-(declaim (ftype (function (character &optional stream)
+(declaim (ftype (function (character &optional stream (or null character))
 			  (values string &optional))
 		read-delimited-string))
-(defun read-delimited-string(end-char &optional (*standard-input* *standard-input*))
-  (declare(type character end-char))
+(defun read-delimited-string(end-char &optional (*standard-input* *standard-input*)
+				      start-char)
+  (declare (type character end-char)
+	   (type (or null character) start-char))
   #+ccl(check-type end-char character)
   (loop :for c :of-type character = (read-char)
 	:collect c :into result
 	:if (char= #\\ c) :collect (read-char) :into result
 	:else :if (char= end-char c)
-	:return (concatenate 'string(string c) result)))
+	:return (concatenate 'string
+			     (string(or start-char c))
+			     result)))
 
 (declaim (ftype (function (list)
 			  (values string &optional))
