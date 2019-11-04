@@ -1,6 +1,7 @@
-# CORE-READER 0.0.0
+# CORE-READER 0.1.0
 ## What is this?
-Core helpers for writing reader.
+Utilities for stream oriented reader.
+
 ### Current lisp world
 Lisp has `READ`.
 ### Issues
@@ -15,6 +16,7 @@ See spec file.
 
 ### License
 MIT
+
 ### Tested with
 * SBCL/1.5.8
 * CCL/1.11.5
