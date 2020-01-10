@@ -1,4 +1,4 @@
-# CORE-READER 0.1.0
+# CORE-READER 0.1.1
 ## What is this?
 Utilities for stream oriented reader.
 
@@ -18,7 +18,7 @@ See spec file.
 MIT
 
 ### Tested with
-* SBCL/1.5.8
+* SBCL/2.0.0
 * CCL/1.11.5
 * ECL/16.1.3
 * CLISP/2.49
