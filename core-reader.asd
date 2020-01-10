@@ -1,7 +1,7 @@
 ; vim: ft=lisp et
 (in-package :asdf)
 (defsystem "core-reader"
-  :version "0.1.0"
+  :version "0.1.1"
   :author "Shinichi Sato"
   :description "Utilities for stream oriented reader."
   :long-description #.(read-file-string(subpathname *load-pathname*
