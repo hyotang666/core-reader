@@ -4,7 +4,7 @@
 (setup :core-reader)
 
 (requirements-about READ-STRING-TILL :test string=
-		    :around (with-input-from-string(*standard-input* "foo bar 666 bazz'")
+		    :around (with-input-from-string (*standard-input* "foo bar 666 bazz'")
 			      (call-body)))
 
 ;;;; Description:
@@ -18,7 +18,7 @@
 		  (consume nil)
 		  (include nil)) ; => result
 
-#?(read-string-till(lambda(c)(char= #\space c)))
+#?(read-string-till (lambda (c) (char= #\space c)))
 => "foo"
 #?(read-string-till #'digit-char-p)
 => "foo bar "
@@ -36,31 +36,31 @@
 
 ; eof-error-p := boolean which specifies to signal error or not, when reach end of file.
 ; The default is T.
-#?(with-input-from-string(*standard-input* "")
-    (read-string-till (lambda(c)(char= c #\null))))
+#?(with-input-from-string (*standard-input* "")
+    (read-string-till (lambda (c) (char= c #\null))))
 :signals end-of-file
-#?(with-input-from-string(*standard-input* "")
-    (read-string-till (lambda(c)(char= c #\null)) *standard-input* nil))
+#?(with-input-from-string (*standard-input* "")
+    (read-string-till (lambda (c) (char= c #\null)) *standard-input* nil))
 => NIL
 ; NOTE! - Even if reach end of file, if have contents, return it successfully.
-#?(read-string-till (lambda(c)(char= c #\null))) => "foo bar 666 bazz'"
+#?(read-string-till (lambda (c) (char= c #\null))) => "foo bar 666 bazz'"
 
 ; eof-value := T, returned when reach end of file.
 ; The default is nil.
-#?(with-input-from-string(s "")
-    (read-string-till (lambda(c)(char= c #\null)) s nil :default))
+#?(with-input-from-string (s "")
+    (read-string-till (lambda (c) (char= c #\null)) s nil :default))
 => :default
 
 ; consume := boolean, specify consumes character which satisfies PRED.
 ; The default is nil.
-#?(flet((spacep()
-	  (lambda(c)(char= c #\space))))
+#?(flet ((spacep ()
+	  (lambda (c) (char= c #\space))))
     (values (read-string-till (spacep))
 	    (read-string-till (spacep))))
 :values ("foo" "")
 ,:test equal
-#?(flet((spacep()
-	  (lambda(c)(char= c #\space))))
+#?(flet ((spacep ()
+	  (lambda (c) (char= c #\space))))
     (values (read-string-till (spacep) *standard-input* t t t)
 	    (read-string-till (spacep))))
 :values ("foo" "bar")
@@ -68,8 +68,8 @@
 
 ; include := boolean, specify consumed character is included in result.
 ; The default is T.
-#?(flet((spacep()
-	  (lambda(c)(char= c #\space))))
+#?(flet ((spacep ()
+	  (lambda (c) (char= c #\space))))
     (values (read-string-till (spacep) *standard-input* t t t t)
 	    (read-string-till (spacep))))
 :values ("foo " "bar")
@@ -119,7 +119,7 @@
 ;;;; Exceptional-Situations:
 
 (requirements-about READ-DELIMITED-STRING :test string=
-		    :around (with-input-from-string(*standard-input* "foo] bar 666 \\'bazz'")
+		    :around (with-input-from-string (*standard-input* "foo] bar 666 \\'bazz'")
 			      (call-body)))
 
 ;;;; Description:
