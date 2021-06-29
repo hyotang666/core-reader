@@ -109,7 +109,7 @@
     (dolist (elt list string)
       (etypecase elt
         (character (setf (char string index) elt) (incf index))
-        (string
+        ((simple-array character (*))
          (replace string elt :start1 index)
          (incf index (length elt)))))))
 
