@@ -52,7 +52,9 @@
                      eof-value consume include))
 
 (define-compiler-macro read-string-till
-    (function &optional stream (eof-error-p t) eof-value consume include)
+                       (function
+                        &optional stream (eof-error-p t) eof-value consume
+                        include)
   `(%read-string-till
      ,(typecase function
         ((cons (eql quote) (cons symbol null)) `#',(cadr function))
@@ -123,8 +125,7 @@
       (lambda (c) (and (characterp c) (char= c char)))
       (lambda (c) (char= c char))))
 
-(define-compiler-macro char-pred
-    (&whole whole char &optional check)
+(define-compiler-macro char-pred (&whole whole char &optional check)
   (if (not (constantp check))
       whole
       (if (not (constantp char))
