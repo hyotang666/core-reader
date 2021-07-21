@@ -2,7 +2,9 @@
 (in-package :asdf)
 (defsystem "core-reader"
   :version "0.2.1"
-  :author "Shinichi Sato"
+  :author "SATO Shinichi"
+  :source-control (:git "git@github.com:hyotang666/core-reader")
+  :bug-tracker "https://github.com/hyotang666/core-reader/issues"
   :description "Utilities for stream oriented reader."
   :long-description #.(read-file-string(subpathname *load-pathname*
                                                     "README.md"))
