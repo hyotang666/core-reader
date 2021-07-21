@@ -25,26 +25,27 @@
 (defun %read-string-till
        (pred *standard-input* eof-error-p eof-value consume include)
   (declare (type function pred))
-  (prog (result)
-    (declare (type list result))
+  (prog* ((result (cons nil nil)) (tail result))
+    (declare (type cons result tail))
     (handler-bind ((end-of-file
                     (lambda (c)
                       (declare (ignore c))
-                      (if result
+                      (if (cdr result)
                           (go :return)
                           (unless eof-error-p
                             (return eof-value))))))
       (tagbody
        :top
-        (push (read-char) result)
-        (unless (funcall pred (car result))
-          (go :top))
-        (if consume
-            (unless include
-              (pop result))
-            (unread-char (pop result)))))
+        (let ((char (read-char)))
+          (unless (funcall pred char)
+            (rplacd tail (setf tail (list char)))
+            (go :top))
+          (if consume
+              (when include
+                (rplacd tail (setf tail (list char))))
+              (unread-char char)))))
    :return
-    (return (coerce (nreverse result) 'string))))
+    (return (coerce (the list (cdr result)) 'string))))
 
 (defun read-string-till
        (pred
