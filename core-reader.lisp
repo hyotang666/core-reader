@@ -20,51 +20,28 @@
          (values (or string t) boolean))
         read-string-till))
 
-(declaim (inline %read-string-till))
-
-(defun %read-string-till
-       (pred *standard-input* eof-error-p eof-value consume include)
-  (declare (type function pred))
-  (prog* ((result (cons nil nil)) (tail result))
-    (declare (type cons result tail))
-    (handler-bind ((end-of-file
-                    (lambda (c)
-                      (declare (ignore c))
-                      (if (cdr result)
-                          (go :return)
-                          (unless eof-error-p
-                            (return eof-value))))))
-      (tagbody
-       :top
-        (let ((char (read-char)))
-          (unless (funcall pred char)
-            (rplacd tail (setf tail (list char)))
-            (go :top))
-          (if consume
-              (when include
-                (rplacd tail (setf tail (list char))))
-              (unread-char char)))))
-   :return
-    (return (coerce (the list (cdr result)) 'string))))
-
 (defun read-string-till
        (pred
         &optional (*standard-input* *standard-input*) (eof-error-p t)
-        (eof-value nil) (consume nil) (include nil))
-  (%read-string-till (coerce pred 'function) *standard-input* eof-error-p
-                     eof-value consume include))
-
-(define-compiler-macro read-string-till
-                       (function
-                        &optional stream (eof-error-p t) eof-value consume
-                        include)
-  `(%read-string-till
-     ,(typecase function
-        ((cons (eql quote) (cons symbol null)) `#',(cadr function))
-        ((cons (eql function) t) function)
-        ((cons (eql the) (cons function t)) function)
-        (t `(coerce ,function 'function)))
-     ,(or stream '*standard-input*) ,eof-error-p ,eof-value ,consume ,include))
+        (eof-value nil) (consume nil) (include nil)
+        &aux (pred (coerce pred 'function))) ; canonicalize.
+  (loop :for char
+             = (handler-case (read-char)
+                 (end-of-file (c)
+                   (if acc
+                       (loop-finish)
+                       (if eof-error-p
+                           (error c)
+                           (return eof-value)))))
+        :if (not (funcall pred char))
+          :collect char :into acc
+        :else :if consume
+          :if include
+            :collect char :into acc
+          :else
+            :do (unread-char char)
+        :and :do (loop-finish)
+        :finally (return (coerce (the list acc) 'string))))
 
 (declaim (ftype (function (sequence) (values function &optional)) delimiter))
 
