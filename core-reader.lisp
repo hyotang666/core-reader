@@ -8,6 +8,8 @@
 
 (in-package #:core-reader)
 
+(declaim (optimize speed))
+
 (deftype function-designator ()
   '(or function (and symbol (not (or boolean keyword)))))
 
@@ -21,8 +23,7 @@
 
 (defun %read-string-till
        (pred *standard-input* eof-error-p eof-value consume include)
-  (declare (optimize speed)
-           (type function pred))
+  (declare (type function pred))
   (prog (result)
     (declare (type list result))
     (handler-bind ((end-of-file
@@ -97,7 +98,6 @@
 (declaim (ftype (function (list) (values string &optional)) string-concat))
 
 (defun string-concat (list)
-  (declare (optimize (speed 3)))
   (let* ((size
           (let ((size 0))
             (declare (type (mod #.most-positive-fixnum) size))
