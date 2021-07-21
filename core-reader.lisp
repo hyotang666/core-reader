@@ -71,12 +71,16 @@
   (let ((ht (make-hash-table)))
     (map nil
          (if (stringp delimiters)
-             (lambda (char) (setf (gethash char ht) char))
+             (lambda (char) (setf (gethash char ht) t))
              (lambda (char)
                (check-type char character)
-               (setf (gethash char ht) char)))
+               (setf (gethash char ht) t)))
          delimiters)
-    (lambda (char) (values (gethash char ht)))))
+    (flet ((delimiterp (char)
+             (values (gethash char ht))))
+      (declare
+        (ftype (function (character) (values boolean &optional)) delimiterp))
+      #'delimiterp)))
 
 (defmacro do-delimited-string ((var delimiter &optional stream) &body body)
   (let ((vdelim (gensym "DELIMITER")))
