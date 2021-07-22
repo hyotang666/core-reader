@@ -3,6 +3,7 @@
   (:export #:read-string-till
            #:delimiter
            #:do-delimited-string
+           #:do-stream-till
            #:read-delimited-string
            #:string-concat
            #:char-pred))
@@ -13,6 +14,44 @@
 
 (deftype function-designator ()
   '(or function (and symbol (not (or boolean keyword)))))
+
+(defmacro do-stream-till
+          ((var pred &optional stream consume include) &body body)
+  (let ((vpred (gensym "PRED")))
+    `(let (,@(when stream
+               `((*standard-input* ,stream)))
+           (,vpred (coerce ,pred 'function)))
+       (loop :for ,var :of-type character := (read-char)
+             :until (funcall ,vpred ,var)
+             :if (char= #\\ ,var)
+               :do (tagbody ,@body)
+                   (setf ,var (read-char))
+                   (tagbody ,@body)
+             :else
+               :do (tagbody ,@body)
+             :finally ,(if (constantp consume)
+                           (if (constantp include)
+                               (let ((consume (eval consume))
+                                     (include (eval include)))
+                                 (if consume
+                                     (if include
+                                         `(tagbody ,@body))
+                                     `(unread-char ,var)))
+                               (let ((consume (eval consume)))
+                                 (if consume
+                                     `(if ,include
+                                          (tagbody ,@body))
+                                     `(unread-char ,var))))
+                           (if (constantp include)
+                               (let ((include (eval include)))
+                                 `(if consume
+                                      ,(if include
+                                           `(tagbody ,@body))
+                                      (unread-char ,var)))
+                               `(if consume
+                                    (if include
+                                        (tagbody ,@body))
+                                    (unread-char ,var))))))))
 
 (declaim
  (ftype (function
