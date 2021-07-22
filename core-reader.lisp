@@ -93,43 +93,6 @@
       #'delimiterp)))
 
 (declaim
- (ftype (function (character &optional stream (or null character))
-         (values string &optional))
-        read-delimited-string))
-
-(defun read-delimited-string
-       (end-char &optional (*standard-input* *standard-input*) start-char)
-  (declare (type character end-char)
-           (type (or null character) start-char))
-  #+ccl
-  (check-type end-char character)
-  (let* ((acc (cons nil nil)) (acc-tail acc))
-    (do-stream-till (c (lambda (c) (char= end-char c)) nil t t)
-      (rplacd acc-tail (setf acc-tail (list c))))
-    (rplaca acc (or start-char end-char))
-    (coerce acc 'string)))
-
-(declaim (ftype (function (list) (values string &optional)) string-concat))
-
-(defun string-concat (list)
-  (let* ((size
-          (let ((size 0))
-            (declare (type (mod #.most-positive-fixnum) size))
-            (dolist (elt list size)
-              (etypecase elt
-                (character (incf size))
-                (string (incf size (length elt)))))))
-         (string (make-array size :element-type 'character))
-         (index 0))
-    (declare (type (mod #.most-positive-fixnum) size index))
-    (dolist (elt list string)
-      (etypecase elt
-        (character (setf (char string index) elt) (incf index))
-        ((simple-array character (*))
-         (replace string elt :start1 index)
-         (incf index (length elt)))))))
-
-(declaim
  (ftype (function (character &optional boolean) (values function &optional))
         char-pred))
 
@@ -192,3 +155,40 @@
                               char-pred))
                      #'char-pred))))
           whole)))
+
+(declaim
+ (ftype (function (character &optional stream (or null character))
+         (values string &optional))
+        read-delimited-string))
+
+(defun read-delimited-string
+       (end-char &optional (*standard-input* *standard-input*) start-char)
+  (declare (type character end-char)
+           (type (or null character) start-char))
+  #+ccl
+  (check-type end-char character)
+  (let* ((acc (cons nil nil)) (acc-tail acc))
+    (do-stream-till (c (char-pred end-char) nil t t)
+      (rplacd acc-tail (setf acc-tail (list c))))
+    (rplaca acc (or start-char end-char))
+    (coerce acc 'string)))
+
+(declaim (ftype (function (list) (values string &optional)) string-concat))
+
+(defun string-concat (list)
+  (let* ((size
+          (let ((size 0))
+            (declare (type (mod #.most-positive-fixnum) size))
+            (dolist (elt list size)
+              (etypecase elt
+                (character (incf size))
+                (string (incf size (length elt)))))))
+         (string (make-array size :element-type 'character))
+         (index 0))
+    (declare (type (mod #.most-positive-fixnum) size index))
+    (dolist (elt list string)
+      (etypecase elt
+        (character (setf (char string index) elt) (incf index))
+        ((simple-array character (*))
+         (replace string elt :start1 index)
+         (incf index (length elt)))))))
