@@ -1,7 +1,7 @@
 ; vim: ft=lisp et
 (in-package :asdf)
 (defsystem "core-reader"
-  :version "1.0.0"
+  :version "1.0.1"
   :author "SATO Shinichi"
   :source-control (:git "git@github.com:hyotang666/core-reader")
   :bug-tracker "https://github.com/hyotang666/core-reader/issues"

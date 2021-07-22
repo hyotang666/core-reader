@@ -61,25 +61,19 @@
 (defun read-string-till
        (pred
         &optional (*standard-input* *standard-input*) (eof-error-p t)
-        (eof-value nil) (consume nil) (include nil)
-        &aux (pred (coerce pred 'function))) ; canonicalize.
-  (loop :for char
-             = (handler-case (read-char)
-                 (end-of-file (c)
-                   (if acc
-                       (loop-finish)
-                       (if eof-error-p
-                           (error c)
-                           (return eof-value)))))
-        :if (not (funcall pred char))
-          :collect char :into acc
-        :else :if consume
-          :if include
-            :collect char :into acc
-          :else
-            :do (unread-char char)
-        :and :do (loop-finish)
-        :finally (return (coerce (the list acc) 'string))))
+        (eof-value nil) (consume nil) (include nil))
+  (prog* ((acc (cons nil nil)) (tail acc))
+    (handler-case
+        (do-stream-till (c pred nil consume include)
+          (rplacd tail (setf tail (list c))))
+      (end-of-file (c)
+        (if (cdr acc)
+            (go :return)
+            (if eof-error-p
+                (error c)
+                (return eof-value)))))
+   :return
+    (return (coerce (the list (cdr acc)) 'string))))
 
 (declaim (ftype (function (sequence) (values function &optional)) delimiter))
 
