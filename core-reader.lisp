@@ -34,7 +34,8 @@
                                      (include (eval include)))
                                  (if consume
                                      (if include
-                                         `(tagbody ,@body))
+                                         `(tagbody ,@body)
+                                         `(return nil))
                                      `(unread-char ,var)))
                                (let ((consume (eval consume)))
                                  (if consume
