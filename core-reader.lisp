@@ -2,7 +2,6 @@
   (:use :cl)
   (:export #:read-string-till
            #:delimiter
-           #:do-delimited-string
            #:do-stream-till
            #:read-delimited-string
            #:string-concat
@@ -99,21 +98,6 @@
         (ftype (function (character) (values boolean &optional)) delimiterp))
       #'delimiterp)))
 
-(defmacro do-delimited-string ((var delimiter &optional stream) &body body)
-  (let ((vdelim (gensym "DELIMITER")))
-    `(let ((,vdelim ,delimiter)
-           ,@(when stream
-               `((*standard-input* ,stream))))
-       (loop :for ,var :of-type character := (read-char)
-             :until (char= ,var ,vdelim)
-             :if (char= #\\ ,var)
-               :do (tagbody ,@body)
-                   (setf ,var (read-char))
-                   (tagbody ,@body)
-             :else
-               :do (tagbody ,@body)
-             :finally (tagbody ,@body)))))
-
 (declaim
  (ftype (function (character &optional stream (or null character))
          (values string &optional))
@@ -126,7 +110,7 @@
   #+ccl
   (check-type end-char character)
   (let* ((acc (cons nil nil)) (acc-tail acc))
-    (do-delimited-string (c end-char)
+    (do-stream-till (c (lambda (c) (char= end-char c)) nil t t)
       (rplacd acc-tail (setf acc-tail (list c))))
     (rplaca acc (or start-char end-char))
     (coerce acc 'string)))
