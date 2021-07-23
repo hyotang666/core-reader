@@ -235,3 +235,106 @@
 
 ;;;; Exceptional-Situations:
 
+(requirements-about DO-STREAM-TILL :doc-type function)
+
+;;;; Description:
+
+#+syntax (DO-STREAM-TILL (var pred &optional stream consume include)
+           &body
+           body)
+; => result
+
+;;;; Arguments and Values:
+
+; var := symbol, otherwise implementation dependent condition.
+#?(DO-STREAM-TILL ("not symbol" 'NOT)
+    :NEVER) :signals condition
+; The form is not evaluated.
+#?(DO-STREAM-TILL ((INTERN "Not evaluated") 'NOT)
+    :NEVER) :signals condition
+; Corner case of the situation.
+#?(DO-STREAM-TILL (NIL 'NOT)
+    :NEVER) :signals condition
+
+; pred := function designator which ftype as (function (character) boolean), otherwise signal implementation dependent condition.
+#?(DO-STREAM-TILL (C "not function designator")
+    :NEVER) :signals condition
+; The form will be evaluated only once.
+#?(DO-STREAM-TILL (C NOT)
+    :NEVER) :signals UNBOUND-VARIABLE
+#?(with-input-from-string (*standard-input* "abcd123")
+    (do-stream-till (c (print 'digit-char-p))
+      (princ c)))
+:outputs "
+DIGIT-CHAR-P abcd"
+
+; stream := stream, otherwise implementation dependent condition.
+#?(DO-STREAM-TILL (C 'NOT "not stream")
+    :NEVER) :signals condition
+; NIL works as *standard-input*.
+#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "dummy")
+    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\m)) NIL)
+      (PRINC C)))
+:outputs "du"
+
+; consume := boolean. Control consuming character that satisfies the predicate.
+#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "dummy")
+    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\u)) NIL T)
+      (PRINC C))
+    (PRINT (READ-CHAR)))
+:outputs "d
+#\\m "
+; The default is NIL.
+#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "dummy")
+    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\u)))
+      (PRINC C))
+    (PRINT (READ-CHAR)))
+:outputs "d
+#\\u "
+
+; include := boolean, Control the body process is applied to the character which satisfied the predicate.
+#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "dummy")
+    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\u)) NIL T T)
+      (PRINC C))
+    (PRINT (READ-CHAR)))
+:outputs "du
+#\\m "
+
+; body := implicit progn.
+; Declare is not supported.
+#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "dummy")
+    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\u)))
+      (DECLARE (TYPE BASE-CHAR C))
+      (PRINC C))) :signals condition
+; Implicit BLOCK named NIL, so RETURN works.
+#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "dummy")
+    (DO-STREAM-TILL (C 'NOT)
+      (WHEN (CHAR= C #\m) (RETURN C))))
+=> #\m
+; Implicit TAGBODY, so GO works.
+#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "dummy")
+    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= #\y C)))
+      (WHEN (CHAR= C #\m) (GO :SKIP))
+      (PRINC C)
+      :SKIP))
+:outputs "du"
+
+; result := null
+#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "dummy")
+    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\u)))
+      (PRINC C)))
+=> NIL
+, :stream nil
+
+;;;; Affected By:
+
+;;;; Side-Effects:
+
+;;;; Notes:
+
+;;;; Exceptional-Situations:
+
+; If exhausts stream content, end-of-file will be signaled.
+#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "")
+    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= #\y C)))
+      (PRINC C))) :signals END-OF-FILE
