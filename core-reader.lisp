@@ -33,42 +33,36 @@
 
 (defmacro do-stream-till
           ((var pred &optional stream consume include) &body body)
-  (let ((vpred (gensym "PRED")))
-    `(let (,@(when stream
-               `((*standard-input* ,stream)))
-           (,vpred (coerce ,pred 'function)))
-       (loop :for ,var :of-type character := (read-char)
-             :until (funcall ,vpred ,var)
-             :if (char= #\\ ,var)
-               :do (tagbody ,@body)
-                   (setf ,var (read-char))
-                   (tagbody ,@body)
-             :else
-               :do (tagbody ,@body)
-             :finally ,(if (constantp consume)
-                           (if (constantp include)
-                               (let ((consume (eval consume))
-                                     (include (eval include)))
-                                 (if consume
-                                     (if include
-                                         `(tagbody ,@body)
-                                         `(return nil))
-                                     `(unread-char ,var)))
-                               (let ((consume (eval consume)))
-                                 (if consume
-                                     `(if ,include
-                                          (tagbody ,@body))
-                                     `(unread-char ,var))))
-                           (if (constantp include)
-                               (let ((include (eval include)))
-                                 `(if consume
-                                      ,(if include
-                                           `(tagbody ,@body))
-                                      (unread-char ,var)))
-                               `(if consume
-                                    (if include
-                                        (tagbody ,@body))
-                                    (unread-char ,var))))))))
+  (let ((vpred (gensym "PRED")) (s (gensym "INPUT")))
+    `(let ((,s ,stream) (,vpred (coerce ,pred 'function)))
+       (do-stream (,var ,s)
+         (cond
+           ((funcall ,vpred ,var)
+            ,(if (constantp consume)
+                 (if (constantp include)
+                     (let ((consume (eval consume)) (include (eval include)))
+                       (if consume
+                           (if include
+                               `(tagbody ,@body)
+                               `(return nil))
+                           `(unread-char ,var)))
+                     (let ((consume (eval consume)))
+                       (if consume
+                           `(if ,include
+                                (tagbody ,@body))
+                           `(unread-char ,var))))
+                 (if (constantp include)
+                     (let ((include (eval include)))
+                       `(if consume
+                            ,(if include
+                                 `(tagbody ,@body))
+                            (unread-char ,var)))
+                     `(if consume
+                          (if include
+                              (tagbody ,@body))
+                          (unread-char ,var))))
+            (return))
+           (t (tagbody ,@body)))))))
 
 (declaim
  (ftype (function
@@ -177,7 +171,9 @@
   (check-type end-char character)
   (let* ((acc (cons nil nil)) (acc-tail acc))
     (do-stream-till (c (char-pred end-char) nil t t)
-      (rplacd acc-tail (setf acc-tail (list c))))
+      (rplacd acc-tail (setf acc-tail (list c)))
+      (when (char= #\\ c)
+        (rplacd acc-tail (setf acc-tail (list (read-char))))))
     (rplaca acc (or start-char end-char))
     (coerce acc 'string)))
 
