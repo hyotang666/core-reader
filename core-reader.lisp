@@ -186,7 +186,7 @@
          (incf index (length elt)))))))
 
 (defmacro do-stream-till-suffix
-          ((var suffix &key ((stream input)) (include t)) &body body)
+          ((var suffix &key ((:stream input)) (include t)) &body body)
   (multiple-value-bind (forms decls)
       (uiop:parse-body body)
     `(block nil
