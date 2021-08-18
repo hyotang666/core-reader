@@ -426,3 +426,82 @@ DIGIT-CHAR-P abcd"
     (do-stream-till-suffix (c "<<<")
       (declare (ignore c))))
 :signals end-of-file
+
+(requirements-about DO-STREAM :doc-type function)
+
+;;;; Description:
+
+#+syntax (DO-STREAM (var &optional stream (eof-error-p t) eof-value)
+           &body
+           body)
+; => result
+
+;;;; Arguments and Values:
+
+; var := (AND SYMBOL (NOT (OR BOOLEAN KEYWORD))), otherwise implementation dependent condition.
+#?(do-stream ("not-symbol")) :signals condition
+; Not evaluated.
+#?(do-stream ((intern "Not evaluated"))) :signals condition
+
+; stream := STREAM-DESIGNATOR, otherwise implementation dependent condition.
+#?(do-stream (var "not stream")) :signals condition
+
+; eof-error-p := BOOLEAN
+; If true (the default), signal end-of-file when get end-of-file.
+#?(with-input-from-string (in "")
+    (do-stream (c in t)
+      (write-char c)))
+:signals end-of-file
+
+#?(with-input-from-string (in "")
+    (do-stream (c in nil)
+      (write-char c)))
+:invokes-debugger not
+
+; eof-value := T
+; If EOF-ERROR-P is `NIL`, this is returned.
+#?(with-input-from-string (in "")
+    (do-stream (c in nil :this-is-returned)
+      (write-char c)))
+=> :THIS-IS-RETURNED
+
+; body := implicit progn.
+; Can declare.
+#?(with-input-from-string (in "")
+    (do-stream (c in nil nil)
+      (declare (ignore c))))
+=> NIL
+
+; Can return.
+#?(with-input-from-string (in "asdf1234")
+    (do-stream (c in)
+      (if (digit-char-p c 10)
+	(return)
+	(write-char c))))
+:outputs "asdf"
+
+; Can go.
+#?(with-input-from-string (in "asdf1234")
+    (do-stream (c in nil)
+      (if (digit-char-p c 10)
+	(go :end)
+	(write-char c))
+      :end
+      (write-char #\space)))
+:outputs "a s d f     "
+
+; result := NULL unless return.
+#?(with-input-from-string (in "")
+    (do-stream (c in nil nil)
+      (declare (ignore c))))
+=> NIL
+
+;;;; Affected By:
+
+;;;; Side-Effects:
+; Consume STREAM contents.
+
+;;;; Notes:
+
+;;;; Exceptional-Situations:
+

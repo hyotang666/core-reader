@@ -2,6 +2,7 @@
   (:use :cl)
   (:export #:read-string-till
            #:delimiter
+           #:do-stream
            #:do-stream-till
            #:do-stream-till-suffix
            #:read-delimited-string
@@ -14,6 +15,21 @@
 
 (deftype function-designator ()
   '(or function (and symbol (not (or boolean keyword)))))
+
+(defmacro do-stream
+          ((var &optional stream (eof-error-p t) eof-value) &body body)
+  (multiple-value-bind (forms decls)
+      (uiop:parse-body body)
+    (let ((s (gensym "STREAM")) (c (gensym "CONDITION")))
+      `(let ((,s ,stream))
+         (loop (handler-case (read-char ,s)
+                 (end-of-file (,c)
+                   (if ,eof-error-p
+                       (error ,c)
+                       (return ,eof-value)))
+                 (:no-error (,var)
+                   ,@decls
+                   (tagbody ,@forms))))))))
 
 (defmacro do-stream-till
           ((var pred &optional stream consume include) &body body)
