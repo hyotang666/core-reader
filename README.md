@@ -16,7 +16,6 @@ See spec file.
 
 ### License
 MIT
-
 ### Tested with
 * SBCL/2.0.2
 * CCL/1.12

@@ -338,3 +338,91 @@ DIGIT-CHAR-P abcd"
 #?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "")
     (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= #\y C)))
       (PRINC C))) :signals END-OF-FILE
+
+(requirements-about DO-STREAM-TILL-SUFFIX :doc-type function)
+
+;;;; Description:
+
+#+syntax (DO-STREAM-TILL-SUFFIX (var suffix &key ((stream input)) (include t))
+           &body
+           body)
+; => result
+
+;;;; Arguments and Values:
+
+; var := (and symbol (not (or keyword boolean))), otherwise implementation dependent condition.
+#?(do-stream-till-suffix ("not symbol" "dummy")) :signals condition
+; Not evaluated.
+#?(do-stream-till-suffix ((intern "NOT evaluated") "dummy")) :signals condition
+
+; suffix := SEQUENCE, otherwise implemntation dependent condition.
+#?(do-stream-till-suffix (var :not-sequence)) :signals condition
+; SEQUENCE must have characters, otherwise an error is signaled.
+#?(do-stream-till-suffix (var '(:not :characters))
+    (declare (ignore var)))
+:signals type-error
+
+; stream := (or boolean stream) otherwise implementation dependent condition.
+#?(do-stream-till-suffix (var "hoge" :stream "not stream")
+    (declare (ignore var)))
+:signals condition
+
+; include := generalized-boolean
+; If true (the default), SUFFIX characters are applied to THUNK.
+#?(with-output-to-string (*standard-output*)
+    (with-input-from-string (*standard-input* "in <<<")
+      (do-stream-till-suffix (c "<<<")
+        (write-char c))))
+=> "in <<<"
+,:test equal
+
+#?(with-output-to-string (*standard-output*)
+    (with-input-from-string (*standard-input* "in <<<")
+      (do-stream-till-suffix (c "<<<" :include nil)
+        (write-char c))))
+=> "in "
+,:test equal
+
+; body := implicit progn.
+; Can declare.
+#?(with-input-from-string (*standard-input* "in <<<")
+    (do-stream-till-suffix (c "<<<")
+      (declare (ignore c))))
+=> NIL
+
+; Can go.
+#?(with-input-from-string (*standard-input* "asdf1234<<<")
+    (do-stream-till-suffix (c "<<<")
+      (if (digit-char-p c 10)
+	(go :end)
+	(write-char c))
+      :end))
+:outputs "asdf<<<"
+
+; Can return.
+#?(with-input-from-string (*standard-input* "asdf1234<<<")
+    (values (do-stream-till-suffix (c "<<<")
+	      (when (digit-char-p c 10)
+		(return c)))
+	    (read-char)))
+:values (#\1 #\2)
+
+; result := NULL unless returned.
+#?(with-input-from-string (*standard-input* "asdf<<<")
+    (do-stream-till-suffix (c "<<<")
+      (declare (ignore c))))
+=> NIL
+
+;;;; Affected By:
+
+;;;; Side-Effects:
+; Consume STREAM contents.
+
+;;;; Notes:
+
+;;;; Exceptional-Situations:
+; When SUFFIX is not found, end-of-file is signaled.
+#?(with-input-from-string (*standard-input* "asdf<<")
+    (do-stream-till-suffix (c "<<<")
+      (declare (ignore c))))
+:signals end-of-file

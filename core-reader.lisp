@@ -3,6 +3,7 @@
   (:export #:read-string-till
            #:delimiter
            #:do-stream-till
+           #:do-stream-till-suffix
            #:read-delimited-string
            #:string-concat
            #:char-pred))
@@ -183,3 +184,55 @@
         ((simple-array character (*))
          (replace string elt :start1 index)
          (incf index (length elt)))))))
+
+(defmacro do-stream-till-suffix
+          ((var suffix &key ((stream input)) (include t)) &body body)
+  (multiple-value-bind (forms decls)
+      (uiop:parse-body body)
+    `(block nil
+       (call-with-do-stream-till-suffix ,suffix ,input
+                                        (lambda (,var)
+                                          ,@decls
+                                          (tagbody ,@forms))
+                                        :include ,include))))
+
+(defun call-with-do-stream-till-suffix
+       (suffix input thunk
+        &key (include t)
+        &aux (thunk (coerce thunk 'function))
+        (input
+         (etypecase input
+           (stream input)
+           ((eql t) *terminal-io*)
+           (null *standard-input*))))
+  (declare (optimize (speed 1))) ; due to accept sequence.
+  (assert (<= 2 (length suffix)))
+  (let* ((head (cons :head nil)) (tail head) (first-char (elt suffix 0)))
+    (declare (character first-char))
+    (labels ((first-char-p (c)
+               (char= c first-char))
+             (skip ()
+               (do-stream-till (c #'first-char-p input)
+                 (funcall thunk c)))
+             (reset ()
+               (loop :for cons :on (cdr head)
+                     :do (rplaca cons (read-char input))))
+             (shift ()
+               (funcall thunk (cadr head))
+               (setf (cadr head) (read-char input)
+                     (cdr tail) (cdr head)
+                     (cdr head) (cddr head)
+                     tail (rplacd (cdr tail) nil))))
+      (skip)
+      ;; Initialize.
+      (dotimes (x (length suffix))
+        (rplacd tail (setf tail (list (read-char input)))))
+      (loop (if (every #'char= suffix (cdr head))
+                (progn
+                 (when include
+                   (mapc thunk (cdr head)))
+                 (return))
+                (let ((pos (position first-char head :start 2)))
+                  (if pos
+                      (dotimes (x (1- pos)) (shift))
+                      (progn (mapc thunk (cdr head)) (skip) (reset)))))))))
