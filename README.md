@@ -2,12 +2,14 @@
 ## What is this?
 Utilities for stream oriented reader.
 
-### Current lisp world
-Lisp has `READ`.
-### Issues
-Less internals for writing `READ` like feature.
-### Proposal
-CORE-READER provides it.
+## Alternatives and differences.
+
+|        | [uiop/stream] | core-reader |
+| ------ | ------------- | ----------- |
+| Orient | Line/S-Exp    | Character   |
+
+[uiop/stream]: https://gitlab.common-lisp.net/asdf/asdf/-/blob/master/uiop/stream.lisp
+
 ## Usage
 See spec file.
 ## From developer
