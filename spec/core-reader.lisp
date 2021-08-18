@@ -262,8 +262,8 @@
 ; The form will be evaluated only once.
 #?(DO-STREAM-TILL (C NOT)
     :NEVER) :signals UNBOUND-VARIABLE
-#?(with-input-from-string (*standard-input* "abcd123")
-    (do-stream-till (c (print 'digit-char-p))
+#?(with-input-from-string (in "abcd123")
+    (do-stream-till (c (print 'digit-char-p) in)
       (princ c)))
 :outputs "
 DIGIT-CHAR-P abcd"
@@ -272,31 +272,31 @@ DIGIT-CHAR-P abcd"
 #?(DO-STREAM-TILL (C 'NOT "not stream")
     :NEVER) :signals condition
 ; NIL works as *standard-input*.
-#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "dummy")
-    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\m)) NIL)
+#?(WITH-INPUT-FROM-STRING (in "dummy")
+    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\m)) in)
       (PRINC C)))
 :outputs "du"
 
 ; consume := boolean. Control consuming character that satisfies the predicate.
-#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "dummy")
-    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\u)) NIL T)
+#?(WITH-INPUT-FROM-STRING (in "dummy")
+    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\u)) in T)
       (PRINC C))
-    (PRINT (READ-CHAR)))
+    (PRINT (READ-CHAR in)))
 :outputs "d
 #\\m "
 ; The default is NIL.
-#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "dummy")
-    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\u)))
+#?(WITH-INPUT-FROM-STRING (in "dummy")
+    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\u)) in)
       (PRINC C))
-    (PRINT (READ-CHAR)))
+    (PRINT (READ-CHAR in)))
 :outputs "d
 #\\u "
 
 ; include := boolean, Control the body process is applied to the character which satisfied the predicate.
-#?(WITH-INPUT-FROM-STRING (*STANDARD-INPUT* "dummy")
-    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\u)) NIL T T)
+#?(WITH-INPUT-FROM-STRING (in "dummy")
+    (DO-STREAM-TILL (C (LAMBDA (C) (CHAR= C #\u)) in T T)
       (PRINC C))
-    (PRINT (READ-CHAR)))
+    (PRINT (READ-CHAR in)))
 :outputs "du
 #\\m "
 

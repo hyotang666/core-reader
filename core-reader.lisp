@@ -45,22 +45,22 @@
                            (if include
                                `(tagbody ,@body)
                                `(return nil))
-                           `(unread-char ,var)))
+                           `(unread-char ,var ,s)))
                      (let ((consume (eval consume)))
                        (if consume
                            `(if ,include
                                 (tagbody ,@body))
-                           `(unread-char ,var))))
+                           `(unread-char ,var ,s))))
                  (if (constantp include)
                      (let ((include (eval include)))
                        `(if consume
                             ,(if include
                                  `(tagbody ,@body))
-                            (unread-char ,var)))
+                            (unread-char ,var ,s)))
                      `(if consume
                           (if include
                               (tagbody ,@body))
-                          (unread-char ,var))))
+                          (unread-char ,var ,s))))
             (return))
            (t (tagbody ,@body)))))))
 
