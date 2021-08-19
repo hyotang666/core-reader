@@ -25,10 +25,15 @@
     (let ((s (gensym "STREAM")) (c (gensym "CONDITION")))
       `(let ((,s ,stream))
          (loop (handler-case (read-char ,s)
-                 (end-of-file (,c)
-                   (if ,eof-error-p
-                       (error ,c)
-                       (return ,eof-value)))
+                 ,(if (constantp eof-error-p)
+                      (let ((eof-error-p (eval eof-error-p)))
+                        (if eof-error-p
+                            `(end-of-file (,c) (error ,c))
+                            `(end-of-file nil (return ,eof-value))))
+                      `(end-of-file (,c)
+                        (if ,eof-error-p
+                            (error ,c)
+                            (return ,eof-value))))
                  (:no-error (,var)
                    ,@decls
                    (tagbody ,@forms))))))))
