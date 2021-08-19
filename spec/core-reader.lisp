@@ -358,8 +358,9 @@ DIGIT-CHAR-P abcd"
 ; suffix := SEQUENCE, otherwise implemntation dependent condition.
 #?(do-stream-till-suffix (var :not-sequence)) :signals condition
 ; SEQUENCE must have characters, otherwise an error is signaled.
-#?(do-stream-till-suffix (var '(:not :characters))
-    (declare (ignore var)))
+#?(with-input-from-string (*standard-input* "hoge")
+    (do-stream-till-suffix (var '(:not :characters))
+      (declare (ignore var))))
 :signals type-error
 
 ; stream := (or boolean stream) otherwise implementation dependent condition.
