@@ -18,6 +18,8 @@
 
 (defmacro do-stream
           ((var &optional stream (eof-error-p t) eof-value) &body body)
+  ;; Trivial syntax check.
+  (check-type var symbol)
   (multiple-value-bind (forms decls)
       (uiop:parse-body body)
     (let ((s (gensym "STREAM")) (c (gensym "CONDITION")))
@@ -33,6 +35,8 @@
 
 (defmacro do-stream-till
           ((var pred &optional stream consume include) &body body)
+  ;; Trivial syntax check.
+  (check-type var symbol)
   (let ((vpred (gensym "PRED")) (s (gensym "INPUT")))
     `(let ((,s ,stream) (,vpred (coerce ,pred 'function)))
        (do-stream (,var ,s)
@@ -199,6 +203,8 @@
 
 (defmacro do-stream-till-suffix
           ((var suffix &key ((:stream input)) (include t)) &body body)
+  ;; Trivial syntax check.
+  (check-type var symbol)
   (multiple-value-bind (forms decls)
       (uiop:parse-body body)
     `(block nil
@@ -221,6 +227,8 @@
   (assert (<= 2 (length suffix)))
   (let* ((head (cons :head nil)) (tail head) (first-char (elt suffix 0)))
     (declare (character first-char))
+    #+ccl
+    (check-type first-char character)
     (labels ((first-char-p (c)
                (char= c first-char))
              (skip ()

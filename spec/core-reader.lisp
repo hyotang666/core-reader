@@ -261,7 +261,7 @@
     :NEVER) :signals condition
 ; The form will be evaluated only once.
 #?(DO-STREAM-TILL (C NOT)
-    :NEVER) :signals UNBOUND-VARIABLE
+    :NEVER) :signals condition
 #?(with-input-from-string (in "abcd123")
     (do-stream-till (c (print 'digit-char-p) in)
       (princ c)))
