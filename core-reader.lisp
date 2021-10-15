@@ -121,7 +121,7 @@
   (assert (typep char 'character))
   (if check
       (lambda (c) (and (characterp c) (char= c char)))
-      (lambda (c) (char= c char))))
+      (lambda (c) #+allegro (check-type c character) (char= c char))))
 
 (define-compiler-macro char-pred (&whole whole char &optional check)
   (flet ((<fun-with-check> (char)
@@ -232,7 +232,7 @@
   (assert (<= 2 (length suffix)))
   (let* ((head (cons :head nil)) (tail head) (first-char (elt suffix 0)))
     (declare (character first-char))
-    #+ccl
+    #+(or ccl allegro)
     (check-type first-char character)
     (labels ((first-char-p (c)
                (char= c first-char))
