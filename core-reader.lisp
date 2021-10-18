@@ -41,37 +41,41 @@
 (defmacro do-stream-till
           ((var pred &optional stream consume include) &body body)
   ;; Trivial syntax check.
-  (check-type var symbol)
+  (check-type var (and symbol (not boolean)))
   (let ((vpred (gensym "PRED")) (s (gensym "INPUT")))
-    `(let ((,s ,stream) (,vpred (coerce ,pred 'function)))
-       (do-stream (,var ,s)
-         (cond
-           ((funcall ,vpred ,var)
-            ,(if (constantp consume)
-                 (if (constantp include)
-                     (let ((consume (eval consume)) (include (eval include)))
-                       (if consume
-                           (if include
-                               `(tagbody ,@body)
-                               `(return nil))
-                           `(unread-char ,var ,s)))
-                     (let ((consume (eval consume)))
-                       (if consume
-                           `(if ,include
-                                (tagbody ,@body))
-                           `(unread-char ,var ,s))))
-                 (if (constantp include)
-                     (let ((include (eval include)))
+    (multiple-value-bind (body decls)
+        (uiop:parse-body body)
+      (when decls
+        (error "Declaration is not supported."))
+      `(let ((,s ,stream) (,vpred (coerce ,pred 'function)))
+         (do-stream (,var ,s)
+           (cond
+             ((funcall ,vpred ,var)
+              ,(if (constantp consume)
+                   (if (constantp include)
+                       (let ((consume (eval consume)) (include (eval include)))
+                         (if consume
+                             (if include
+                                 `(tagbody ,@body)
+                                 `(return nil))
+                             `(unread-char ,var ,s)))
+                       (let ((consume (eval consume)))
+                         (if consume
+                             `(if ,include
+                                  (tagbody ,@body))
+                             `(unread-char ,var ,s))))
+                   (if (constantp include)
+                       (let ((include (eval include)))
+                         `(if consume
+                              ,(if include
+                                   `(tagbody ,@body))
+                              (unread-char ,var ,s)))
                        `(if consume
-                            ,(if include
-                                 `(tagbody ,@body))
-                            (unread-char ,var ,s)))
-                     `(if consume
-                          (if include
-                              (tagbody ,@body))
-                          (unread-char ,var ,s))))
-            (return))
-           (t (tagbody ,@body)))))))
+                            (if include
+                                (tagbody ,@body))
+                            (unread-char ,var ,s))))
+              (return))
+             (t (tagbody ,@body))))))))
 
 (declaim
  (ftype (function
@@ -176,7 +180,7 @@
        (end-char &optional (*standard-input* *standard-input*) start-char)
   (declare (type character end-char)
            (type (or null character) start-char))
-  #+ccl
+  #+(or ccl abcl)
   (check-type end-char character)
   (let* ((acc (cons nil nil)) (acc-tail acc))
     (do-stream-till (c (char-pred end-char) nil t t)
