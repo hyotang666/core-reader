@@ -37,18 +37,18 @@
 ; eof-error-p := boolean which specifies to signal error or not, when reach end of file.
 ; The default is T.
 #?(with-input-from-string (*standard-input* "")
-    (read-string-till (lambda (c) (char= c #\null))))
+    (read-string-till (lambda (c) (char= c #.(code-char 0)))))
 :signals end-of-file
 #?(with-input-from-string (*standard-input* "")
-    (read-string-till (lambda (c) (char= c #\null)) *standard-input* nil))
+    (read-string-till (lambda (c) (char= c #.(code-char 0))) *standard-input* nil))
 => NIL
 ; NOTE! - Even if reach end of file, if have contents, return it successfully.
-#?(read-string-till (lambda (c) (char= c #\null))) => "foo bar 666 bazz'"
+#?(read-string-till (lambda (c) (char= c #.(code-char 0)))) => "foo bar 666 bazz'"
 
 ; eof-value := T, returned when reach end of file.
 ; The default is nil.
 #?(with-input-from-string (s "")
-    (read-string-till (lambda (c) (char= c #\null)) s nil :default))
+    (read-string-till (lambda (c) (char= c #.(code-char 0))) s nil :default))
 => :default
 
 ; consume := boolean, specify consumes character which satisfies PRED.
